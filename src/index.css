@@ -1,0 +1,215 @@
+:root {
+  /* Dark theme variables */
+  --bg-primary: #07090f;
+  --bg-secondary: #0d1117;
+  --bg-tertiary: #111720;
+  --border-color: #1c2535;
+  --accent-primary: #3b82f6;
+  --accent-glow: #3b82f633;
+  --text-primary: #e2e8f0;
+  --text-secondary: #94a3b8;
+  --text-muted: #475569;
+  --success: #10b981;
+  --warning: #f59e0b;
+  --error: #f43f5e;
+  --info: #8b5cf6;
+
+  font-family: 'DM Sans', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+  font-size: 13px;
+  line-height: 1.6;
+  font-weight: 400;
+  color: var(--text-primary);
+  background-color: var(--bg-primary);
+  color-scheme: dark;
+
+  font-synthesis: none;
+  text-rendering: optimizeLegibility;
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+}
+
+/* Typography */
+body {
+  margin: 0;
+  padding: 0;
+  min-width: 320px;
+  min-height: 100vh;
+  background: var(--bg-primary);
+}
+
+h1, h2, h3, h4, h5, h6 {
+  font-family: 'Syne', sans-serif;
+  font-weight: 700;
+  letter-spacing: -0.02em;
+  margin: 0;
+  padding: 0;
+}
+
+h1 { font-size: 2.8em; line-height: 1.1; }
+h2 { font-size: 1.85em; line-height: 1.2; }
+h3 { font-size: 1.35em; line-height: 1.3; }
+h4 { font-size: 1.1em; line-height: 1.4; }
+
+p {
+  margin: 0;
+  padding: 0;
+}
+
+a {
+  color: var(--accent-primary);
+  text-decoration: none;
+  font-weight: 500;
+  transition: color 0.2s ease;
+}
+
+a:hover {
+  color: #60a5fa;
+  text-decoration: underline;
+}
+
+/* Forms & Inputs */
+input, textarea, select {
+  font-family: inherit;
+  font-size: 13px;
+  color: var(--text-primary);
+  background: var(--bg-primary);
+  border: 1px solid var(--border-color);
+  border-radius: 8px;
+  padding: 9px 12px;
+  transition: all 0.2s ease;
+  outline: none;
+}
+
+input:focus, textarea:focus, select:focus {
+  border-color: var(--accent-primary);
+  box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.1);
+}
+
+input:disabled, textarea:disabled, select:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+}
+
+textarea {
+  resize: vertical;
+  font-family: 'DM Mono', monospace;
+}
+
+/* Buttons */
+button {
+  border-radius: 8px;
+  border: 1px solid transparent;
+  padding: 9px 20px;
+  font-size: 13px;
+  font-weight: 600;
+  font-family: inherit;
+  background-color: var(--accent-primary);
+  color: #fff;
+  cursor: pointer;
+  transition: all 0.18s ease;
+  outline: none;
+}
+
+button:hover {
+  background-color: #60a5fa;
+  box-shadow: 0 0 12px rgba(59, 130, 246, 0.3);
+}
+
+button:active {
+  transform: scale(0.98);
+}
+
+button:disabled {
+  opacity: 0.45;
+  cursor: not-allowed;
+  background-color: var(--border-color);
+}
+
+/* Scrollbar */
+::-webkit-scrollbar {
+  width: 8px;
+  height: 8px;
+}
+
+::-webkit-scrollbar-track {
+  background: var(--bg-primary);
+}
+
+::-webkit-scrollbar-thumb {
+  background: var(--border-color);
+  border-radius: 4px;
+  transition: background 0.2s ease;
+}
+
+::-webkit-scrollbar-thumb:hover {
+  background: #2d3748;
+}
+
+/* Firefox scrollbar */
+* {
+  scrollbar-color: var(--border-color) var(--bg-primary);
+  scrollbar-width: thin;
+}
+
+/* Utility classes */
+.fade-in {
+  animation: fadeIn 0.35s ease both;
+}
+
+.fade-up {
+  animation: fadeUp 0.35s ease both;
+}
+
+.pulse {
+  animation: pulse 1.4s ease infinite;
+}
+
+.spin {
+  animation: spin 0.7s linear infinite;
+}
+
+@keyframes fadeIn {
+  from { opacity: 0; }
+  to { opacity: 1; }
+}
+
+@keyframes fadeUp {
+  from {
+    opacity: 0;
+    transform: translateY(12px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+@keyframes pulse {
+  0%, 100% { opacity: 1; }
+  50% { opacity: 0.4; }
+}
+
+@keyframes spin {
+  to { transform: rotate(360deg); }
+}
+
+/* Selection */
+::selection {
+  background: var(--accent-primary);
+  color: #fff;
+}
+
+/* Responsive Typography */
+@media (max-width: 768px) {
+  :root { font-size: 12px; }
+  h1 { font-size: 2em; }
+  h2 { font-size: 1.5em; }
+  h3 { font-size: 1.2em; }
+}
+
+@media (max-width: 480px) {
+  :root { font-size: 11px; }
+  h1 { font-size: 1.75em; }
+  h2 { font-size: 1.35em; }
+  h3 { font-size: 1.1em; }
+}

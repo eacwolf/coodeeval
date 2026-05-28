@@ -1,0 +1,309 @@
+#root {
+  width: 100%;
+  height: 100%;
+}
+
+/* ============= LAYOUT ============= */
+.app-container {
+  display: flex;
+  min-height: 100vh;
+  background: #07090f;
+  color: #e2e8f0;
+  font-family: 'DM Sans', sans-serif;
+}
+
+.main-content {
+  flex: 1;
+  overflow-y: auto;
+  padding: 20px 24px;
+  display: flex;
+  flex-direction: column;
+}
+
+/* ============= SIDEBAR ============= */
+.sidebar {
+  width: 228px;
+  flex-shrink: 0;
+  background: #0d1117;
+  border-right: 1px solid #1c2535;
+  display: flex;
+  flex-direction: column;
+  min-height: 100vh;
+  position: relative;
+  transition: all 0.3s ease;
+}
+
+.sidebar nav {
+  flex: 1;
+  padding: 12px 10px;
+  overflow-y: auto;
+}
+
+.sidebar button {
+  width: 100%;
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 9px 12px;
+  border-radius: 8px;
+  border: none;
+  background: transparent;
+  color: #94a3b8;
+  font-size: 13px;
+  font-weight: 400;
+  text-align: left;
+  cursor: pointer;
+  transition: all 0.14s ease;
+  margin-bottom: 2px;
+}
+
+.sidebar button:hover {
+  background: rgba(59, 130, 246, 0.05);
+  color: #3b82f6;
+}
+
+.sidebar button.active {
+  background: rgba(59, 130, 246, 0.1);
+  color: #3b82f6;
+  font-weight: 600;
+}
+
+/* ============= MOBILE MENU ============= */
+.mobile-menu-toggle {
+  position: fixed !important;
+  top: 16px !important;
+  left: 16px !important;
+  z-index: 1001 !important;
+  width: 40px !important;
+  height: 40px !important;
+  border-radius: 8px !important;
+  background: #111720 !important;
+  border: 1px solid #1c2535 !important;
+  cursor: pointer !important;
+  display: none !important;
+  align-items: center !important;
+  justify-content: center !important;
+  font-size: 20px !important;
+  color: #e2e8f0 !important;
+  padding: 0 !important;
+  margin: 0 !important;
+  font-family: inherit !important;
+  font-weight: 400 !important;
+  transition: all 0.2s ease !important;
+}
+
+.mobile-menu-toggle:hover {
+  background: #1c2535 !important;
+  border-color: #3b82f6 !important;
+}
+
+.mobile-overlay {
+  display: none !important;
+  position: fixed !important;
+  top: 0 !important;
+  left: 0 !important;
+  right: 0 !important;
+  bottom: 0 !important;
+  background: rgba(0, 0, 0, 0.7) !important;
+  z-index: 999 !important;
+}
+
+.mobile-overlay.active {
+  display: block !important;
+}
+
+/* ============= RESPONSIVE DESIGN ============= */
+
+/* Desktop (1024px and above) */
+@media (min-width: 1024px) {
+  body {
+    font-size: 14px;
+  }
+  
+  .mobile-menu-toggle {
+    display: none !important;
+  }
+  
+  .mobile-overlay {
+    display: none !important;
+  }
+}
+
+/* Tablet (768px to 1023px) */
+@media (max-width: 1023px) {
+  body {
+    font-size: 13px;
+  }
+  
+  .main-content {
+    padding: 18px 20px;
+  }
+  
+  .mobile-menu-toggle {
+    display: none !important;
+  }
+}
+
+/* Mobile (up to 767px) */
+@media (max-width: 767px) {
+  body {
+    font-size: 12px;
+  }
+  
+  .app-container {
+    flex-direction: column;
+  }
+  
+  .main-content {
+    flex: 1;
+    padding: 12px 10px;
+    margin-top: 40px;
+  }
+  
+  .sidebar {
+    position: fixed !important;
+    left: 0;
+    top: 0;
+    width: 228px;
+    height: 100vh;
+    z-index: 1000;
+    transform: translateX(-100%);
+    transition: transform 0.3s ease;
+    box-shadow: 4px 0 20px rgba(0, 0, 0, 0.5);
+  }
+  
+  .sidebar.open {
+    transform: translateX(0);
+  }
+  
+  .mobile-menu-toggle {
+    display: flex !important;
+  }
+  
+  .mobile-overlay.active {
+    display: block !important;
+  }
+    z-index: 999;
+    display: none;
+  }
+  
+  .mobile-overlay.active {
+    display: block;
+  }
+  
+  .main-content {
+    flex: 1;
+    padding: 16px !important;
+  }
+  
+  /* Grid adjustments */
+  .grid-2-col {
+    grid-template-columns: 1fr !important;
+  }
+  
+  .grid-4-col {
+    grid-template-columns: repeat(2, 1fr) !important;
+  }
+  
+  .grid-4-col-small {
+    grid-template-columns: 1fr !important;
+  }
+  
+  /* Padding adjustments */
+  main {
+    padding: 16px 12px !important;
+  }
+  
+  /* Section margins */
+  .section-title {
+    margin-bottom: 16px !important;
+  }
+  
+  /* Panel adjustments */
+  .panel {
+    padding: 14px 12px !important;
+  }
+  
+  /* Button sizing */
+  .btn-flex-wrap {
+    flex-direction: column !important;
+  }
+  
+  .btn-flex-wrap > * {
+    width: 100% !important;
+  }
+  
+  /* Text sizing */
+  .text-sm {
+    font-size: 11px !important;
+  }
+  
+  .text-base {
+    font-size: 12px !important;
+  }
+  
+  /* Flex wrapping for metric display */
+  .metric-scores {
+    flex-direction: column;
+    gap: 6px;
+  }
+  
+  .metric-score-item {
+    min-width: auto !important;
+    width: 100% !important;
+  }
+  
+  /* Scoreboard adjustments */
+  .scoreboard-header {
+    flex-direction: column;
+    gap: 10px;
+  }
+  
+  .scoreboard-metrics {
+    flex-direction: column;
+    gap: 6px;
+  }
+  
+  .scoreboard-actions {
+    flex-direction: column;
+    gap: 6px;
+  }
+}
+
+/* Small phones (up to 480px) */
+@media (max-width: 480px) {
+  body {
+    font-size: 11px;
+  }
+  
+  main {
+    padding: 12px 8px !important;
+  }
+  
+  .grid-4-col {
+    grid-template-columns: 1fr !important;
+  }
+  
+  .panel {
+    padding: 12px 10px !important;
+  }
+  
+  h2, .section-title h2 {
+    font-size: 18px !important;
+  }
+  
+  h3 {
+    font-size: 12px !important;
+  }
+  
+  /* Tag adjustments */
+  .tag {
+    font-size: 10px !important;
+    padding: 2px 6px !important;
+  }
+  
+  /* Input and textarea adjustments */
+  input, textarea, select {
+    font-size: 12px !important;
+  }
+}
