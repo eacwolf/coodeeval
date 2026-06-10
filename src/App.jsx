@@ -1,4 +1,9 @@
 import { useState, useEffect, useRef } from "react";
+import LoginPage from "./LoginPage";
+import RegisterPage from "./RegisterPage";
+import { useOnboarding } from "./useOnboarding";
+import { OnboardingProvider } from "./OnboardingProvider";
+import { TOUR_STEPS } from "./tourConfig";
 
 const FONT_URL = "https://fonts.googleapis.com/css2?family=Syne:wght@400;600;700;800&family=DM+Mono:ital,wght@0,400;0,500;1,400&family=DM+Sans:ital,wght@0,300;0,400;0,500;0,600;1,400&display=swap";
 
@@ -148,7 +153,7 @@ const NAV = [
   { id:"send",       icon:"\ud83d\udce7",  label:"Send Challenge"    },
 ];
 
-function Sidebar({ active, setActive, apiKeySet, challengeCount, submissionCount, isMobile, isOpen, onClose }) {
+function Sidebar({ active, setActive, apiKeySet, challengeCount, submissionCount, isMobile, isOpen, onClose, user, onLogout, onHelpClick }) {
   const handleNavClick = (id) => {
     setActive(id);
     if (isMobile) onClose();
@@ -164,9 +169,9 @@ function Sidebar({ active, setActive, apiKeySet, challengeCount, submissionCount
           </div>
         </div>
       </div>
-      <nav style={{ padding:"12px 10px", flex:1 }}>
+      <nav className="sidebar-nav" style={{ padding:"12px 10px", flex:1 }}>
         {NAV.map(n => (
-          <button key={n.id} onClick={()=>handleNavClick(n.id)} style={{ width:"100%", display:"flex", alignItems:"center", gap:10, padding:"9px 12px", borderRadius:8, border:"none", cursor:"pointer", background:active===n.id?T.accentGlow:"transparent", color:active===n.id?T.accent:T.textSub, fontSize:13, fontWeight:active===n.id?600:400, transition:"all .14s", marginBottom:2, textAlign:"left" }}>
+          <button key={n.id} data-tour={`${n.id}-nav`} onClick={()=>handleNavClick(n.id)} style={{ width:"100%", display:"flex", alignItems:"center", gap:10, padding:"9px 12px", borderRadius:8, border:"none", cursor:"pointer", background:active===n.id?T.accentGlow:"transparent", color:active===n.id?T.accent:T.textSub, fontSize:13, fontWeight:active===n.id?600:400, transition:"all .14s", marginBottom:2, textAlign:"left" }}>
             <span style={{ fontSize:15 }}>{n.icon}</span>
             <span style={{ flex:1 }}>{n.label}</span>
             {n.id==="challenge"&&challengeCount>0&&<span style={{ fontFamily:T.mono, fontSize:10, color:T.textMuted }}>{challengeCount}</span>}
@@ -175,9 +180,27 @@ function Sidebar({ active, setActive, apiKeySet, challengeCount, submissionCount
         ))}
       </nav>
       <div style={{ padding:"12px 14px", borderTop:`1px solid ${T.border}` }}>
-        <div style={{ display:"flex", alignItems:"center", gap:8, marginBottom:10 }}>
-          <div style={{ width:7, height:7, borderRadius:"50%", background:apiKeySet?T.emerald:T.rose, boxShadow:apiKeySet?`0 0 6px ${T.emerald}`:"none" }} className={apiKeySet?"":"pulsing"} />
+        <div style={{ display:"flex", alignItems:"center", gap:8, marginBottom:12 }}>
+          <div data-tour="api-status" style={{ width:7, height:7, borderRadius:"50%", background:apiKeySet?T.emerald:T.rose, boxShadow:apiKeySet?`0 0 6px ${T.emerald}`:"none" }} className={apiKeySet?"":"pulsing"} />
           <span style={{ fontSize:11, color:T.textMuted, fontFamily:T.mono }}>{apiKeySet?"LLM READY":"API KEY NEEDED"}</span>
+        </div>
+        {user && (
+          <div data-tour="user-profile" style={{ fontSize:11, color:T.textMuted, marginBottom:12, paddingBottom:12, borderBottom:`1px solid ${T.border}` }}>
+            <div style={{ fontWeight:600, color:T.textSub, marginBottom:2 }}>User</div>
+            <div style={{ wordBreak:"break-all", fontSize:10, color:T.textMuted }}>{user.email}</div>
+          </div>
+        )}
+        <div style={{ display:"flex", flexDirection:"column", gap:8 }}>
+          {onHelpClick && (
+            <button onClick={onHelpClick} style={{ width:"100%", padding:"8px 12px", borderRadius:6, border:`1px solid ${T.border}`, background:"transparent", color:T.accent, fontSize:12, fontWeight:600, cursor:"pointer", transition:"all .14s" }} onMouseEnter={e=>{ e.target.style.background=T.accent+"15"; }} onMouseLeave={e=>{ e.target.style.background="transparent"; }}>
+              ❓ Take Tour
+            </button>
+          )}
+          {onLogout && (
+            <button onClick={onLogout} style={{ width:"100%", padding:"8px 12px", borderRadius:6, border:`1px solid ${T.border}`, background:"transparent", color:T.textSub, fontSize:12, fontWeight:600, cursor:"pointer", transition:"all .14s" }} onMouseEnter={e=>{ e.target.style.background=T.rose+"15"; e.target.style.color=T.rose; }} onMouseLeave={e=>{ e.target.style.background="transparent"; e.target.style.color=T.textSub; }}>
+              🚪 Logout
+            </button>
+          )}
         </div>
       </div>
     </aside>
@@ -203,11 +226,11 @@ function AdminSettings({ cfg, setCfg }) {
       <div className="grid-2-col" style={{ display:"grid", gridTemplateColumns:isMobile?"1fr":"1fr 1fr", gap:12 }}>
         <Panel>
           <h3 style={{ fontFamily:T.display, fontSize:14, fontWeight:700, color:T.accent, marginBottom:12 }}>LLM Configuration</h3>
-          <Select label="LLM Provider" value={local.provider} onChange={v=>setLocal(s=>({...s,provider:v}))} options={["Anthropic Claude","OpenAI GPT-4o","Google Gemini","Azure OpenAI"]} />
-          <Input label="API Key" type="password" value={local.apiKey} onChange={v=>setLocal(s=>({...s,apiKey:v}))} placeholder="sk-ant-... or sk-..." />
-          <Select label="Model" value={local.model} onChange={v=>setLocal(s=>({...s,model:v}))} options={[{value:"claude-sonnet-4-20250514",label:"Claude Sonnet 4 (recommended)"},{value:"claude-opus-4-6",label:"Claude Opus 4"},{value:"gpt-4o",label:"GPT-4o"},{value:"gpt-4o-mini",label:"GPT-4o Mini"}]} />
-          <Select label="Max Tokens" value={local.maxTokens} onChange={v=>setLocal(s=>({...s,maxTokens:v}))} options={["1024","2048","4096","8192"]} />
-          <Btn onClick={save} full style={{marginTop:4}}>{saved?"Saved!":"Save Configuration"}</Btn>
+          <div data-tour="provider-select"><Select label="LLM Provider" value={local.provider} onChange={v=>setLocal(s=>({...s,provider:v}))} options={["Anthropic Claude","OpenAI GPT-4o","Google Gemini","Azure OpenAI"]} /></div>
+          <div data-tour="api-key-input"><Input label="API Key" type="password" value={local.apiKey} onChange={v=>setLocal(s=>({...s,apiKey:v}))} placeholder="sk-ant-... or sk-..." /></div>
+          <div data-tour="model-select"><Select label="Model" value={local.model} onChange={v=>setLocal(s=>({...s,model:v}))} options={[{value:"claude-sonnet-4-20250514",label:"Claude Sonnet 4 (recommended)"},{value:"claude-opus-4-6",label:"Claude Opus 4"},{value:"gpt-4o",label:"GPT-4o"},{value:"gpt-4o-mini",label:"GPT-4o Mini"}]} /></div>
+          <div data-tour="max-tokens-select"><Select label="Max Tokens" value={local.maxTokens} onChange={v=>setLocal(s=>({...s,maxTokens:v}))} options={["1024","2048","4096","8192"]} /></div>
+          <Btn data-tour="save-config-btn" onClick={save} full style={{marginTop:4}}>{saved?"Saved!":"Save Configuration"}</Btn>
           {saved&&<div style={{ marginTop:12, padding:"10px 14px", borderRadius:8, background:T.emerald+"12", border:`1px solid ${T.emerald}30`, fontSize:12, color:T.emerald }}>Configuration saved — LLM engine ready</div>}
         </Panel>
         <div style={{ display:"flex", flexDirection:"column", gap:12 }}>
@@ -365,15 +388,25 @@ function ChallengeBuilder({ cfg, challenges, setChallenges, token }) {
           <div className="grid-2-col" style={{ display:"grid", gridTemplateColumns:isMobile?"1fr":"1fr 1fr", gap:12, marginBottom:12 }}>
             <Panel>
               <h3 style={{ fontFamily:T.display, fontSize:13, fontWeight:700, color:T.accent, marginBottom:12 }}>CHALLENGE METADATA</h3>
-              <Input label="Challenge Name" value={form.name} onChange={v=>upd("name",v)} placeholder="e.g. Rate Limiter API" />
-              <Input label="Target Role" value={form.role} onChange={v=>upd("role",v)} placeholder="e.g. Senior Backend Engineer" />
-              <Select label="Difficulty" value={form.difficulty} onChange={v=>upd("difficulty",v)} options={DIFFICULTIES} />
+              <div data-tour="challenge-name-input">
+                <Input label="Challenge Name" value={form.name} onChange={v=>upd("name",v)} placeholder="e.g. Rate Limiter API" />
+              </div>
+              <div data-tour="challenge-role-input">
+                <Input label="Target Role" value={form.role} onChange={v=>upd("role",v)} placeholder="e.g. Senior Backend Engineer" />
+              </div>
+              <div data-tour="difficulty-select">
+                <Select label="Difficulty" value={form.difficulty} onChange={v=>upd("difficulty",v)} options={DIFFICULTIES} />
+              </div>
               <Textarea label="Quick Description" value={form.description} onChange={v=>upd("description",v)} placeholder="Brief summary..." rows={1} />
             </Panel>
             <Panel>
               <h3 style={{ fontFamily:T.display, fontSize:13, fontWeight:700, color:T.accent, marginBottom:14 }}>PROBLEM CONTEXT</h3>
-              <Textarea label="Business Logic" value={form.businessLogic} onChange={v=>upd("businessLogic",v)} placeholder="Core rules and logic..." rows={1} />
-              <Textarea label="Constraints" value={form.constraints} onChange={v=>upd("constraints",v)} placeholder="Time/space complexity, restrictions..." rows={1} />
+              <div data-tour="business-logic-textarea">
+                <Textarea label="Business Logic" value={form.businessLogic} onChange={v=>upd("businessLogic",v)} placeholder="Core rules and logic..." rows={1} />
+              </div>
+              <div data-tour="constraints-textarea">
+                <Textarea label="Constraints" value={form.constraints} onChange={v=>upd("constraints",v)} placeholder="Time/space complexity, restrictions..." rows={1} />
+              </div>
               <Textarea label="Domain Context" value={form.domain} onChange={v=>upd("domain",v)} placeholder="Industry-specific background (optional)..." rows={1} />
             </Panel>
           </div>
@@ -387,7 +420,7 @@ function ChallengeBuilder({ cfg, challenges, setChallenges, token }) {
             </div>
           </Panel>
           <div style={{ display:"flex", justifyContent:"flex-end" }}>
-            <Btn onClick={generateStatement} loading={genPS} disabled={!form.name||!form.role} style={{ minWidth:220 }}>Generate Problem Statement</Btn>
+            <Btn data-tour="generate-statement-btn" onClick={generateStatement} loading={genPS} disabled={!form.name||!form.role} style={{ minWidth:220 }}>Generate Problem Statement</Btn>
           </div>
         </div>
       )}
@@ -408,7 +441,7 @@ function ChallengeBuilder({ cfg, challenges, setChallenges, token }) {
                   : <Btn small variant="violet" onClick={()=>{ setSavedPS(true); setTimeout(()=>setSavedPS(false),2200); }}>💾 Save Statement</Btn>}
               </div>
             </div>
-            <div style={{ fontFamily:T.mono, fontSize:12, color:T.text, lineHeight:1.8, whiteSpace:"pre-wrap", maxHeight:260, overflowY:"auto", padding:"14px 16px", background:T.bg, borderRadius:8, border:`1px solid ${T.border}` }}>{statement}</div>
+            <div data-tour="problem-statement-box" style={{ fontFamily:T.mono, fontSize:12, color:T.text, lineHeight:1.8, whiteSpace:"pre-wrap", maxHeight:260, overflowY:"auto", padding:"14px 16px", background:T.bg, borderRadius:8, border:`1px solid ${T.border}` }}>{statement}</div>
             <details style={{ marginTop:10, cursor:"pointer" }}>
               <summary style={{ fontSize:11, color:T.textMuted, userSelect:"none", padding:"4px 0" }}>Edit statement manually</summary>
               <div style={{ marginTop:8 }}><Textarea value={statement} onChange={setStatement} rows={8} mono /></div>
@@ -420,7 +453,7 @@ function ChallengeBuilder({ cfg, challenges, setChallenges, token }) {
               <h3 style={{ fontFamily:T.display, fontSize:16, fontWeight:700, color:T.text, marginBottom:2 }}>Evaluation Criteria</h3>
               <p style={{ fontSize:12, color:T.textMuted }}>Define up to 10 metrics — weights must sum to 100%</p>
             </div>
-            <div style={{ display:"flex", gap:8, alignItems:"center" }}>
+            <div data-tour="metrics-generation" style={{ display:"flex", gap:8, alignItems:"center" }}>
               <Tag color={weightOk?T.emerald:T.rose}>{totalWeight}% / 100%</Tag>
               <Btn small variant="violet" onClick={generateMetrics} loading={genM} disabled={!statement}>AI Generate Metrics</Btn>
               <Btn small variant="ghost" onClick={()=>metrics.length<10&&setMetrics(m=>[...m,{id:uid(),name:"",weight:0}])} disabled={metrics.length>=10}>+ Add</Btn>
@@ -447,7 +480,7 @@ function ChallengeBuilder({ cfg, challenges, setChallenges, token }) {
           <div style={{ marginTop:20, display:"flex", justifyContent:"flex-end" }}>
             {saved
               ? <div style={{ padding:"10px 20px", borderRadius:8, background:T.emerald+"18", border:`1px solid ${T.emerald}40`, fontSize:13, color:T.emerald, fontWeight:600 }}>Challenge saved!</div>
-              : <Btn onClick={saveChallenge} disabled={!statement||!weightOk} style={{ minWidth:180 }}>Save Challenge</Btn>}
+              : <Btn data-tour="save-challenge-btn" onClick={saveChallenge} disabled={!statement||!weightOk} style={{ minWidth:180 }}>Save Challenge</Btn>}
           </div>
         </div>
       )}
@@ -532,13 +565,13 @@ function CodeUpload({ cfg, challenges, submissions, setSubmissions, token }) {
           <h3 style={{ fontFamily:T.display, fontSize:13, fontWeight:700, color:T.accent, marginBottom:12 }}>SUBMISSION DETAILS</h3>
           {challenges.length===0
             ? <div style={{ padding:"20px", textAlign:"center", color:T.textMuted, fontSize:13, background:T.bg, borderRadius:8, border:`1px dashed ${T.border}` }}>No challenges saved yet — create one in Challenge Builder first.</div>
-            : <Select label="Challenge" value={selChallenge} onChange={setSelChallenge} options={[{value:"",label:"— Select a challenge —"},...challenges.map(c=>({value:c.id,label:`${c.name} (${c.role})`}))]} />
+            : <div data-tour="challenge-selector"><Select label="Challenge" value={selChallenge} onChange={setSelChallenge} options={[{value:"",label:"— Select a challenge —"},...challenges.map(c=>({value:c.id,label:`${c.name} (${c.role})`}))]} /></div>
           }
-          <Input label="Candidate Name" value={candName} onChange={setCandName} placeholder="Jane Smith" />
-          <Input label="Candidate Email" value={candEmail} onChange={setCandEmail} placeholder="jane@example.com" type="email" hint="Optional" />
+          <div data-tour="candidate-name-input"><Input label="Candidate Name" value={candName} onChange={setCandName} placeholder="Jane Smith" /></div>
+          <div data-tour="candidate-email-input"><Input label="Candidate Email" value={candEmail} onChange={setCandEmail} placeholder="jane@example.com" type="email" hint="Optional" /></div>
 
           <Field label="Code File (.zip)">
-            <div onDragOver={e=>e.preventDefault()} onDrop={e=>{e.preventDefault();handleFile(e.dataTransfer.files[0]);}} onClick={()=>document.getElementById("zip-inp").click()}
+            <div data-tour="file-upload" onDragOver={e=>e.preventDefault()} onDrop={e=>{e.preventDefault();handleFile(e.dataTransfer.files[0]);}} onClick={()=>document.getElementById("zip-inp").click()}
               style={{ border:`2px dashed ${file?T.emerald:T.border}`, borderRadius:10, padding:"28px 20px", textAlign:"center", cursor:"pointer", background:file?T.emerald+"0a":T.bg, transition:"all .2s" }}>
               <input id="zip-inp" type="file" accept=".zip" style={{ display:"none" }} onChange={e=>handleFile(e.target.files[0])} />
               {file
@@ -554,7 +587,7 @@ function CodeUpload({ cfg, challenges, submissions, setSubmissions, token }) {
               <div style={{ display:"flex", flexWrap:"wrap", gap:6 }}>{challenge.metrics.map(m=><Tag key={m.id} color={T.textMuted}>{m.name} · {m.weight}%</Tag>)}</div>
             </div>
           )}
-          <Btn full onClick={runEvaluation} disabled={!selChallenge||!candName||!file||evaluating} loading={evaluating}>{evaluating?progress||"Evaluating...":"Run LLM Evaluation"}</Btn>
+          <Btn data-tour="evaluate-btn" full onClick={runEvaluation} disabled={!selChallenge||!candName||!file||evaluating} loading={evaluating}>{evaluating?progress||"Evaluating...":"Run LLM Evaluation"}</Btn>
         </Panel>
 
         <Panel>
@@ -621,7 +654,7 @@ function Scoreboard({ submissions, challenges }) {
     <div className="fade-up">
       <SectionTitle icon="🏆" title="Scoreboard" sub="Candidates ranked by AI-generated score. Click any row to view the full evaluation report." />
 
-      <div className="grid-4-col" style={{ display:"grid", gridTemplateColumns:isMobile?"repeat(2,1fr)":"repeat(4,1fr)", gap:10, marginBottom:18 }}>
+      <div className="grid-4-col" data-tour="stats-grid" style={{ display:"grid", gridTemplateColumns:isMobile?"repeat(2,1fr)":"repeat(4,1fr)", gap:10, marginBottom:18 }}>
         {[["Total Submissions",submissions.length,T.accent],["Evaluated",submissions.filter(s=>s.score!=null).length,T.emerald],["Avg Score",submissions.length?Math.round(sum(submissions.map(s=>s.score))/submissions.length):"—",T.amber],["Challenges",challenges.length,T.violet]].map(([label,val,color])=>(
           <Panel key={label} style={{ padding:"14px 16px", textAlign:"center" }}>
             <div style={{ fontFamily:T.display, fontSize:28, fontWeight:800, color, marginBottom:4 }}>{val}</div>
@@ -631,7 +664,7 @@ function Scoreboard({ submissions, challenges }) {
       </div>
 
       {challenges.length>0&&(
-        <div style={{ display:"flex", gap:8, marginBottom:16, flexWrap:"wrap" }}>
+        <div data-tour="challenge-filter" style={{ display:"flex", gap:8, marginBottom:16, flexWrap:"wrap" }}>
           {[{value:"all",label:"All Challenges"},...challenges.map(c=>({value:c.id,label:c.name}))].map(o=>(
             <button key={o.value} onClick={()=>setFilterChallenge(o.value)} style={{ padding:"6px 14px", borderRadius:20, border:`1px solid ${filterChallenge===o.value?T.accent:T.border}`, background:filterChallenge===o.value?T.accentGlow:"transparent", color:filterChallenge===o.value?T.accent:T.textSub, fontSize:12, fontWeight:500, cursor:"pointer", transition:"all .14s" }}>{o.label}</button>
           ))}
@@ -640,7 +673,7 @@ function Scoreboard({ submissions, challenges }) {
 
       {filtered.length===0
         ? <Panel style={{ textAlign:"center", padding:60 }}><div style={{ fontSize:40, marginBottom:12 }}>📭</div><div style={{ color:T.textMuted, fontSize:14 }}>No evaluated submissions yet.</div><div style={{ color:T.textMuted, fontSize:12, marginTop:4 }}>Upload and evaluate code in the Code Upload module.</div></Panel>
-        : filtered.map((s,i)=>{
+        : <div data-tour="rankings-list">{filtered.map((s,i)=>{
             const ev=s.evaluation||{}, isOpen=expanded===s.id, rankColor=i===0?T.amber:i===1?"#94a3b8":i===2?"#cd7c2f":T.textMuted;
             const medals=["🥇","🥈","🥉"];
             return (
@@ -649,7 +682,9 @@ function Scoreboard({ submissions, challenges }) {
                   <div style={{ width:38, height:38, borderRadius:"50%", flexShrink:0, display:"flex", alignItems:"center", justifyContent:"center", background:rankColor+"18", border:`1px solid ${rankColor}44` }}>
                     {i<3?<span style={{ fontSize:18 }}>{medals[i]}</span>:<span style={{ fontFamily:T.display, fontSize:13, fontWeight:800, color:rankColor }}>#{i+1}</span>}
                   </div>
-                  <ScoreDonut score={s.score} size={56} />
+                  <div data-tour={i===0?"score-badge":undefined} style={{ display:"flex", alignItems:"center", justifyContent:"center" }}>
+                    <ScoreDonut score={s.score} size={56} />
+                  </div>
                   <div style={{ flex:1, minWidth:0 }}>
                     <div style={{ fontFamily:T.display, fontSize:15, fontWeight:700, color:T.text }}>{s.candName}</div>
                     <div style={{ fontSize:12, color:T.textMuted, marginTop:2 }}>{s.challengeName} · {s.fileName}</div>
@@ -663,7 +698,7 @@ function Scoreboard({ submissions, challenges }) {
                     ))}
                   </div>
                   <div style={{ display:"flex", gap:8, flexShrink:0 }}>
-                    <Btn small variant="ghost" onClick={e=>{e.stopPropagation();downloadReport(s);}}>Download Report</Btn>
+                    <Btn small variant="ghost" data-tour={i===0?"download-report-btn":undefined} onClick={e=>{e.stopPropagation();downloadReport(s);}}>Download Report</Btn>
                     <span style={{ color:T.textMuted, fontSize:18 }}>{isOpen?"▲":"▼"}</span>
                   </div>
                 </div>
@@ -706,7 +741,7 @@ function Scoreboard({ submissions, challenges }) {
                 )}
               </Panel>
             );
-          })
+          })}</div>
       }
     </div>
   );
@@ -756,8 +791,8 @@ function SendChallenge({ challenges }) {
         <div style={{ display:"flex", flexDirection:"column", gap:16 }}>
           <Panel>
             <h3 style={{ fontFamily:T.display, fontSize:13, fontWeight:700, color:T.accent, marginBottom:14 }}>SELECT A CHALLENGE</h3>
-            <Select label="Challenge" value={selected} onChange={setSelected}
-              options={[{value:"",label:"— choose a challenge —"}, ...challenges.map(c=>({value:c.id,label:`${c.name} · ${c.role} · ${c.difficulty}`}))]} />
+            <div data-tour="send-challenge-selector"><Select label="Challenge" value={selected} onChange={setSelected}
+              options={[{value:"",label:"— choose a challenge —"}, ...challenges.map(c=>({value:c.id,label:`${c.name} · ${c.role} · ${c.difficulty}`}))]} /></div>
           </Panel>
 
           {ch && (
@@ -776,14 +811,14 @@ function SendChallenge({ challenges }) {
 
               <Panel>
                 <h3 style={{ fontFamily:T.display, fontSize:13, fontWeight:700, color:T.accent, marginBottom:14 }}>SHAREABLE LINK</h3>
-                <div style={{ display:"flex", gap:8, alignItems:"center", marginBottom:12 }}>
+                <div data-tour="share-link-display" style={{ display:"flex", gap:8, alignItems:"center", marginBottom:12 }}>
                   <div style={{ flex:1, fontFamily:T.mono, fontSize:11, color:T.textSub, padding:"9px 12px", background:T.bg, borderRadius:8, border:`1px solid ${T.border}`, overflowX:"auto", whiteSpace:"nowrap" }}>{shareLink}</div>
-                  <Btn small variant="ghost" onClick={copyLink}>{copied ? "✓ Copied!" : "Copy Link"}</Btn>
+                  <Btn data-tour="copy-link-btn" small variant="ghost" onClick={copyLink}>{copied ? "✓ Copied!" : "Copy Link"}</Btn>
                 </div>
 
                 <h3 style={{ fontFamily:T.display, fontSize:13, fontWeight:700, color:T.accent, marginBottom:12, marginTop:18 }}>SEND VIA EMAIL</h3>
                 <div style={{ display:"flex", gap:8, alignItems:"flex-end", flexDirection:isMobile?"column":"row" }}>
-                  <div style={{ flex:1, width:isMobile?"100%":"auto" }}>
+                  <div data-tour="email-input" style={{ flex:1, width:isMobile?"100%":"auto" }}>
                     <Input label="Recipient Email" value={toEmail} onChange={setToEmail} placeholder="candidate@example.com" type="email" />
                   </div>
                   <div style={{ marginBottom:isMobile?0:14, width:isMobile?"100%":"auto" }}>
@@ -804,13 +839,33 @@ function SendChallenge({ challenges }) {
 }
 
 export default function App() {
+  const [auth, setAuth]               = useState(null);
+  const [authPage, setAuthPage]       = useState("login"); // "login" or "register"
   const [active,      setActive]      = useState("admin");
   const [cfg,         setCfg]         = useState({ provider:"Anthropic Claude", apiKey:"", model:"claude-sonnet-4-20250514", maxTokens:"4096" });
-  const [challenges,  setChallenges]  = useState([]);
-  const [submissions, setSubmissions] = useState([]);
+  const [challenges,  setChallenges]  = useState(() => {
+    const saved = localStorage.getItem("challenges_data");
+    return saved ? JSON.parse(saved) : [];
+  });
+  const [submissions, setSubmissions] = useState(() => {
+    const saved = localStorage.getItem("submissions_data");
+    return saved ? JSON.parse(saved) : [];
+  });
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
   const [isMobile, setIsMobile] = useState(window.innerWidth <= 767);
-  const token = "guest-token";
+
+  // Initialize onboarding system
+  const { isTourActive, currentStep, handleStepChange, startTour, finishTour } = useOnboarding();
+
+  // Persist challenges to localStorage whenever they change
+  useEffect(() => {
+    localStorage.setItem("challenges_data", JSON.stringify(challenges));
+  }, [challenges]);
+
+  // Persist submissions to localStorage whenever they change
+  useEffect(() => {
+    localStorage.setItem("submissions_data", JSON.stringify(submissions));
+  }, [submissions]);
 
   useEffect(()=>{
     const link=document.createElement("link"); link.rel="stylesheet"; link.href=FONT_URL; document.head.appendChild(link);
@@ -822,8 +877,70 @@ export default function App() {
     };
     
     window.addEventListener("resize", handleResize);
-    return () => window.removeEventListener("resize", handleResize);
+
+    // Check for stored auth token
+    const storedToken = localStorage.getItem("auth_token");
+    const storedUser = localStorage.getItem("user");
+    if (storedToken && storedUser) {
+      try {
+        setAuth({ token: storedToken, user: JSON.parse(storedUser) });
+      } catch (e) {
+        localStorage.removeItem("auth_token");
+        localStorage.removeItem("user");
+      }
+    }
+
+    // Handle hash-based navigation
+    const handleHashChange = () => {
+      const hash = window.location.hash.slice(1);
+      if (hash === "register") setAuthPage("register");
+      else if (hash === "login" || hash === "") setAuthPage("login");
+    };
+    
+    // Call handler immediately to set initial state
+    handleHashChange();
+    
+    window.addEventListener("hashchange", handleHashChange);
+
+    return () => {
+      window.removeEventListener("resize", handleResize);
+      window.removeEventListener("hashchange", handleHashChange);
+    };
   },[]);
+
+  const handleLoginSuccess = (token, user) => {
+    setAuth({ token, user });
+    window.location.hash = "";
+  };
+
+  const handleLogout = () => {
+    localStorage.removeItem("auth_token");
+    localStorage.removeItem("user");
+    setAuth(null);
+    setAuthPage("login");
+    window.location.hash = "";
+  };
+
+  // If not authenticated, show login/register page
+  if (!auth) {
+    return (
+      <>
+        <style>{`
+          @keyframes fadeUp { from { opacity: 0; transform: translateY(12px) } to { opacity: 1; transform: translateY(0) } }
+          .fade-up { animation: fadeUp .35s ease both; }
+          @keyframes spin { to { transform: rotate(360deg) } }
+          .spinning { animation: spin .7s linear infinite; }
+        `}</style>
+        {authPage === "login" ? (
+          <LoginPage onLoginSuccess={handleLoginSuccess} />
+        ) : (
+          <RegisterPage onRegisterSuccess={handleLoginSuccess} />
+        )}
+      </>
+    );
+  }
+
+  const token = auth.token;
 
   // Main app pages with token
   const pages = {
@@ -835,65 +952,75 @@ export default function App() {
   };
 
   return (
-    <div className="app-container" style={{ display:"flex", minHeight:"100vh", background:T.bg, color:T.text }}>
-      {/* Mobile Menu Toggle */}
-      {isMobile && (
-        <button 
-          className="mobile-menu-toggle" 
-          onClick={() => setMobileMenuOpen(!mobileMenuOpen)}
-          style={{
-            position: "fixed",
-            top: 16,
-            left: 16,
-            zIndex: 1001,
-            width: 40,
-            height: 40,
-            borderRadius: 8,
-            background: T.panel,
-            border: `1px solid ${T.border}`,
-            cursor: "pointer",
-            display: "flex",
-            alignItems: "center",
-            justifyContent: "center",
-            fontSize: 20,
-            color: T.text,
-            padding: 0
-          }}
-        >
-          ☰
-        </button>
-      )}
-      
-      {/* Mobile Overlay */}
-      {isMobile && mobileMenuOpen && (
-        <div
-          className="mobile-overlay active"
-          onClick={() => setMobileMenuOpen(false)}
-          style={{
-            position: "fixed",
-            top: 0,
-            left: 0,
-            right: 0,
-            bottom: 0,
-            background: "rgba(0, 0, 0, 0.5)",
-            zIndex: 999
-          }}
+    <OnboardingProvider
+      run={isTourActive}
+      steps={TOUR_STEPS}
+      handleStepChange={handleStepChange}
+      onTourEnd={finishTour}
+    >
+      <div className="app-container" style={{ display:"flex", minHeight:"100vh", background:T.bg, color:T.text }}>
+        {/* Mobile Menu Toggle */}
+        {isMobile && (
+          <button 
+            className="mobile-menu-toggle" 
+            onClick={() => setMobileMenuOpen(!mobileMenuOpen)}
+            style={{
+              position: "fixed",
+              top: 16,
+              left: 16,
+              zIndex: 1001,
+              width: 40,
+              height: 40,
+              borderRadius: 8,
+              background: T.panel,
+              border: `1px solid ${T.border}`,
+              cursor: "pointer",
+              display: "flex",
+              alignItems: "center",
+              justifyContent: "center",
+              fontSize: 20,
+              color: T.text,
+              padding: 0
+            }}
+          >
+            ☰
+          </button>
+        )}
+        
+        {/* Mobile Overlay */}
+        {isMobile && mobileMenuOpen && (
+          <div
+            className="mobile-overlay active"
+            onClick={() => setMobileMenuOpen(false)}
+            style={{
+              position: "fixed",
+              top: 0,
+              left: 0,
+              right: 0,
+              bottom: 0,
+              background: "rgba(0, 0, 0, 0.5)",
+              zIndex: 999
+            }}
+          />
+        )}
+        
+        <Sidebar 
+          active={active} 
+          setActive={setActive} 
+          apiKeySet={!!cfg.apiKey} 
+          challengeCount={challenges.length} 
+          submissionCount={submissions.length}
+          isMobile={isMobile}
+          isOpen={mobileMenuOpen}
+          onClose={() => setMobileMenuOpen(false)}
+          user={auth.user}
+          onLogout={handleLogout}
+          onHelpClick={() => startTour(TOUR_STEPS)}
         />
-      )}
-      
-      <Sidebar 
-        active={active} 
-        setActive={setActive} 
-        apiKeySet={!!cfg.apiKey} 
-        challengeCount={challenges.length} 
-        submissionCount={submissions.length}
-        isMobile={isMobile}
-        isOpen={mobileMenuOpen}
-        onClose={() => setMobileMenuOpen(false)}
-      />
-      <main className="main-content" style={{ flex:1, padding:isMobile?"12px 10px":"20px 24px", overflowY:"auto", maxHeight:"100vh" }}>
-        <div style={{ maxWidth:1280, margin:"0 auto", marginTop: isMobile ? 40 : 0 }}>{pages[active]}</div>
-      </main>
-    </div>
+        <main className="main-content" style={{ flex:1, padding:isMobile?"12px 10px":"20px 24px", overflowY:"auto", maxHeight:"100vh" }}>
+          <div style={{ maxWidth:1280, margin:"0 auto", marginTop: isMobile ? 40 : 0 }}>{pages[active]}</div>
+        </main>
+      </div>
+    </OnboardingProvider>
   );
 }

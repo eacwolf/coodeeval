@@ -6,6 +6,8 @@ The frontend's `callLLM()` function now properly handles:
 - ✅ Network connection failures with clear error messages
 - ✅ API response validation
 - ✅ Better error reporting for debugging
+- ✅ Email verification with Resend
+- ✅ User authentication with JWT
 
 ## Setup Instructions
 
@@ -20,32 +22,37 @@ npm install
 cd ..
 ```
 
-### Step 2: Configure Backend API Key
+### Step 2: Configure Backend Environment Variables
 
-**Option A: Using .env file (Recommended)**
+**Copy the example .env file:**
 ```bash
 cd backend
 
 # Copy example file
 cp .env.example .env   # (or on Windows: copy .env.example .env)
-
-# Edit .env and add your API key
-# For Anthropic Claude: sk-ant-xxxxx...
-# For OpenAI: sk-xxxxx...
-# For Google Gemini: Your API key from Google Cloud
 ```
 
-**Option B: Using Windows Batch Script**
-```bash
-# Windows
-./start-all.bat
+**Edit backend/.env and add your keys:**
+```
+# Required for AI features
+ANTHROPIC_API_KEY=sk-ant-xxxxx...
+
+# Required for authentication (set a strong secret)
+JWT_SECRET=your_secret_key_here_change_in_production
+
+# Required for email verification (get from https://resend.com)
+RESEND_API_KEY=re_xxxxx...
+
+# Optional
+PORT=5000
+FRONTEND_URL=http://localhost:5173
 ```
 
-**Option C: Using PowerShell**
-```bash
-# Windows PowerShell
-./start-all.ps1
-```
+**Getting Resend API Key:**
+1. Go to https://resend.com
+2. Sign up for a free account
+3. Get your API key from the dashboard
+4. Add it to your `.env` file as `RESEND_API_KEY`
 
 ### Step 3: Start Backend Server
 

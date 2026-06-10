@@ -4,6 +4,14 @@ import dotenv from "dotenv";
 import Anthropic from "@anthropic-ai/sdk";
 import jwt from "jsonwebtoken";
 import bcrypt from "bcryptjs";
+import { 
+  sendVerificationEmail, 
+  sendPasswordResetEmail, 
+  sendWelcomeEmail, 
+  sendCustomEmail,
+  sendBatchEmails,
+  isEmailServiceConfigured 
+} from "./emailService.js";
 
 dotenv.config();
 
@@ -13,6 +21,8 @@ const JWT_SECRET = process.env.JWT_SECRET || "your-secret-key-change-in-producti
 
 // In-memory user storage (upgrade to database for production)
 const users = [];
+const verificationCodes = new Map(); // email -> { code, expiresAt, attempts }
+const pendingRegistrations = new Map(); // email -> { hashedPassword, createdAt }
 
 // Middleware
 app.use(cors({
@@ -54,13 +64,15 @@ app.post("/api/auth/register", async (req, res) => {
       return res.status(400).json({ error: "Email and password required" });
     }
     if (users.find(u => u.email === email)) {
-      return res.status(409).json({ error: "Email already exists" });
+      return res.status(409).json({ error: "Email already registered" });
     }
+    
     const hashedPassword = await bcrypt.hash(password, 10);
-    const user = { id: Date.now().toString(), email, password: hashedPassword, createdAt: new Date().toISOString() };
+    const user = { id: Date.now().toString(), email, password: hashedPassword, verified: true, createdAt: new Date().toISOString() };
     users.push(user);
+    
     const token = jwt.sign({ id: user.id, email: user.email }, JWT_SECRET, { expiresIn: "7d" });
-    res.status(201).json({ message: "User registered successfully", token, user: { id: user.id, email: user.email } });
+    res.status(201).json({ message: "Account created successfully", token, user: { id: user.id, email: user.email } });
   } catch (error) {
     console.error("Registration error:", error);
     res.status(500).json({ error: "Registration failed" });
@@ -244,6 +256,131 @@ app.post("/api/ask", async (req, res) => {
   }
 });
 
+// ============================================================
+// EMAIL ENDPOINTS - Powered by Resend
+// ============================================================
+
+// Email service status
+app.get("/api/email/status", (req, res) => {
+  res.json({
+    configured: isEmailServiceConfigured(),
+    message: isEmailServiceConfigured() ? "Email service is ready" : "Email service not configured"
+  });
+});
+
+// Send verification email
+app.post("/api/email/send-verification", async (req, res) => {
+  try {
+    const { email, verificationCode } = req.body;
+    
+    if (!email || !verificationCode) {
+      return res.status(400).json({ error: "Email and verification code required" });
+    }
+
+    const result = await sendVerificationEmail(email, verificationCode);
+    
+    if (result.success) {
+      res.json({ message: "Verification email sent successfully", data: result.data });
+    } else {
+      res.status(500).json({ error: result.error });
+    }
+  } catch (error) {
+    console.error("Verification email error:", error);
+    res.status(500).json({ error: "Failed to send verification email" });
+  }
+});
+
+// Send password reset email
+app.post("/api/email/send-password-reset", async (req, res) => {
+  try {
+    const { email, resetToken, resetLink } = req.body;
+    
+    if (!email || !resetToken) {
+      return res.status(400).json({ error: "Email and reset token required" });
+    }
+
+    const result = await sendPasswordResetEmail(email, resetToken, resetLink);
+    
+    if (result.success) {
+      res.json({ message: "Password reset email sent successfully", data: result.data });
+    } else {
+      res.status(500).json({ error: result.error });
+    }
+  } catch (error) {
+    console.error("Password reset email error:", error);
+    res.status(500).json({ error: "Failed to send password reset email" });
+  }
+});
+
+// Send welcome email
+app.post("/api/email/send-welcome", async (req, res) => {
+  try {
+    const { email, userName } = req.body;
+    
+    if (!email) {
+      return res.status(400).json({ error: "Email is required" });
+    }
+
+    const result = await sendWelcomeEmail(email, userName);
+    
+    if (result.success) {
+      res.json({ message: "Welcome email sent successfully", data: result.data });
+    } else {
+      res.status(500).json({ error: result.error });
+    }
+  } catch (error) {
+    console.error("Welcome email error:", error);
+    res.status(500).json({ error: "Failed to send welcome email" });
+  }
+});
+
+// Send custom email
+app.post("/api/email/send-custom", async (req, res) => {
+  try {
+    const { email, subject, htmlContent } = req.body;
+    
+    if (!email || !subject || !htmlContent) {
+      return res.status(400).json({ error: "Email, subject, and htmlContent required" });
+    }
+
+    const result = await sendCustomEmail(email, subject, htmlContent);
+    
+    if (result.success) {
+      res.json({ message: "Custom email sent successfully", data: result.data });
+    } else {
+      res.status(500).json({ error: result.error });
+    }
+  } catch (error) {
+    console.error("Custom email error:", error);
+    res.status(500).json({ error: "Failed to send custom email" });
+  }
+});
+
+// Send batch emails
+app.post("/api/email/send-batch", async (req, res) => {
+  try {
+    const { recipients, subject, htmlContent } = req.body;
+    
+    if (!recipients || !Array.isArray(recipients) || recipients.length === 0) {
+      return res.status(400).json({ error: "Recipients array is required" });
+    }
+    if (!subject || !htmlContent) {
+      return res.status(400).json({ error: "Subject and htmlContent required" });
+    }
+
+    const result = await sendBatchEmails(recipients, subject, htmlContent);
+    
+    if (result.success) {
+      res.json({ message: `Batch email sent to ${recipients.length} recipients`, data: result.data });
+    } else {
+      res.status(500).json({ error: result.error });
+    }
+  } catch (error) {
+    console.error("Batch email error:", error);
+    res.status(500).json({ error: "Failed to send batch emails" });
+  }
+});
+
 // Error handling middleware
 app.use((err, req, res, next) => {
   console.error(err);
@@ -257,6 +394,14 @@ app.listen(PORT, () => {
   console.log(`   POST /api/auth/register - Register new user`);
   console.log(`   POST /api/auth/login - Login user`);
   console.log(`   POST /api/auth/logout - Logout`);
+  console.log(`� Email endpoints (Powered by Resend):`);
+  console.log(`   GET /api/email/status - Check email service status`);
+  console.log(`   POST /api/email/send-verification - Send verification email`);
+  console.log(`   POST /api/email/send-password-reset - Send password reset email`);
+  console.log(`   POST /api/email/send-welcome - Send welcome email`);
+  console.log(`   POST /api/email/send-custom - Send custom email`);
+  console.log(`   POST /api/email/send-batch - Send batch emails`);
   console.log(`📡 API available at http://localhost:${PORT}/api/ask (requires authentication)`);
   console.log(`🏥 Health check at http://localhost:${PORT}/health`);
+  console.log(`💌 Email service: ${isEmailServiceConfigured() ? '✅ Configured' : '⚠️ Not configured - add RESEND_API_KEY to .env'}`);
 });
