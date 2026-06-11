@@ -1,9 +1,7 @@
 import { useState, useEffect, useRef } from "react";
 import LoginPage from "./LoginPage";
 import RegisterPage from "./RegisterPage";
-import { useOnboarding } from "./useOnboarding";
-import { OnboardingProvider } from "./OnboardingProvider";
-import { TOUR_STEPS } from "./tourConfig";
+import { useOnboardingTour, OnboardingTour, WelcomeModal, OVERVIEW_STEPS } from "./onboarding";
 
 const FONT_URL = "https://fonts.googleapis.com/css2?family=Syne:wght@400;600;700;800&family=DM+Mono:ital,wght@0,400;0,500;1,400&family=DM+Sans:ital,wght@0,300;0,400;0,500;0,600;1,400&display=swap";
 
@@ -855,7 +853,17 @@ export default function App() {
   const [isMobile, setIsMobile] = useState(window.innerWidth <= 767);
 
   // Initialize onboarding system
-  const { isTourActive, currentStep, handleStepChange, startTour, finishTour } = useOnboarding();
+  const {
+    showWelcome, isTourRunning, stepIndex, tourSteps,
+    startTour, nextStep, prevStep, skipTour, dismissWelcome, resetAndStart,
+  } = useOnboardingTour();
+
+  // Tab sync for the tour
+  useEffect(() => {
+    if (isTourRunning && tourSteps[stepIndex]?.tabId) {
+      setActive(tourSteps[stepIndex].tabId);
+    }
+  }, [isTourRunning, stepIndex, tourSteps]);
 
   // Persist challenges to localStorage whenever they change
   useEffect(() => {
@@ -952,12 +960,7 @@ export default function App() {
   };
 
   return (
-    <OnboardingProvider
-      run={isTourActive}
-      steps={TOUR_STEPS}
-      handleStepChange={handleStepChange}
-      onTourEnd={finishTour}
-    >
+    <>
       <div className="app-container" style={{ display:"flex", minHeight:"100vh", background:T.bg, color:T.text }}>
         {/* Mobile Menu Toggle */}
         {isMobile && (
@@ -1015,12 +1018,30 @@ export default function App() {
           onClose={() => setMobileMenuOpen(false)}
           user={auth.user}
           onLogout={handleLogout}
-          onHelpClick={() => startTour(TOUR_STEPS)}
+          onHelpClick={() => resetAndStart(OVERVIEW_STEPS)}
         />
         <main className="main-content" style={{ flex:1, padding:isMobile?"12px 10px":"20px 24px", overflowY:"auto", maxHeight:"100vh" }}>
           <div style={{ maxWidth:1280, margin:"0 auto", marginTop: isMobile ? 40 : 0 }}>{pages[active]}</div>
         </main>
       </div>
-    </OnboardingProvider>
+
+      {/* Onboarding: Welcome Modal (first-time users) */}
+      {showWelcome && (
+        <WelcomeModal
+          onStart={() => startTour(OVERVIEW_STEPS)}
+          onSkip={dismissWelcome}
+        />
+      )}
+
+      {/* Onboarding: Guided Tour */}
+      <OnboardingTour
+        steps={tourSteps}
+        stepIndex={stepIndex}
+        isRunning={isTourRunning}
+        onNext={nextStep}
+        onPrev={prevStep}
+        onSkip={skipTour}
+      />
+    </>
   );
 }

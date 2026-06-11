@@ -1,0 +1,379 @@
+/* ─── Onboarding Tour Styles ─── */
+
+/* Spotlight overlay — sits on top of everything */
+.onboarding-overlay {
+  position: fixed;
+  inset: 0;
+  z-index: 99998;
+  pointer-events: none;
+}
+
+.onboarding-overlay svg {
+  width: 100%;
+  height: 100%;
+}
+
+/* Click-blocker behind tooltip so users can't click through overlay */
+.onboarding-click-blocker {
+  position: fixed;
+  inset: 0;
+  z-index: 99998;
+  cursor: default;
+}
+
+/* Tooltip container */
+.onboarding-tooltip {
+  position: fixed;
+  z-index: 99999;
+  pointer-events: auto;
+  max-width: 380px;
+  width: calc(100vw - 32px);
+}
+
+/* Tooltip card */
+.onboarding-tooltip-card {
+  background: linear-gradient(135deg, #111720 0%, #0d1117 100%);
+  border: 1px solid #1c2535;
+  border-radius: 14px;
+  padding: 22px 24px 20px;
+  box-shadow:
+    0 24px 80px rgba(0, 0, 0, 0.8),
+    0 8px 32px rgba(0, 0, 0, 0.5),
+    0 0 0 1px rgba(59, 130, 246, 0.08),
+    inset 0 1px 0 rgba(255, 255, 255, 0.03);
+  backdrop-filter: blur(16px);
+  font-family: 'DM Sans', sans-serif;
+}
+
+/* Step counter badge */
+.onboarding-step-badge {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  font-family: 'DM Mono', monospace;
+  font-size: 10px;
+  font-weight: 600;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: #94a3b8;
+  margin-bottom: 10px;
+}
+
+.onboarding-step-badge .dot {
+  width: 6px;
+  height: 6px;
+  border-radius: 50%;
+  background: #3b82f6;
+  box-shadow: 0 0 8px rgba(59, 130, 246, 0.5);
+}
+
+/* Title */
+.onboarding-tooltip-title {
+  font-family: 'Syne', sans-serif;
+  font-size: 17px;
+  font-weight: 700;
+  color: #e2e8f0;
+  letter-spacing: -0.01em;
+  margin-bottom: 8px;
+  line-height: 1.3;
+}
+
+/* Description */
+.onboarding-tooltip-desc {
+  font-size: 13px;
+  color: #94a3b8;
+  line-height: 1.7;
+  margin-bottom: 6px;
+}
+
+/* Action hint */
+.onboarding-tooltip-action {
+  font-size: 12px;
+  font-weight: 600;
+  color: #3b82f6;
+  margin-bottom: 16px;
+  display: flex;
+  align-items: center;
+  gap: 6px;
+}
+
+.onboarding-tooltip-action::before {
+  content: '';
+  display: inline-block;
+  width: 14px;
+  height: 14px;
+  border-radius: 50%;
+  background: rgba(59, 130, 246, 0.15);
+  border: 1.5px solid rgba(59, 130, 246, 0.3);
+  flex-shrink: 0;
+}
+
+/* Progress bar */
+.onboarding-progress {
+  height: 3px;
+  background: #1c2535;
+  border-radius: 2px;
+  margin-bottom: 16px;
+  overflow: hidden;
+}
+
+.onboarding-progress-fill {
+  height: 100%;
+  border-radius: 2px;
+  background: linear-gradient(90deg, #3b82f6, #8b5cf6);
+  transition: width 0.5s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+/* Controls row */
+.onboarding-controls {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+}
+
+.onboarding-controls-right {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+/* Button base */
+.onboarding-btn {
+  padding: 7px 16px;
+  border-radius: 8px;
+  font-size: 12px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.18s ease;
+  font-family: 'DM Sans', sans-serif;
+  border: none;
+  outline: none;
+  user-select: none;
+}
+
+/* Skip button */
+.onboarding-btn-skip {
+  background: transparent;
+  color: #475569;
+  border: 1px solid transparent;
+}
+
+.onboarding-btn-skip:hover {
+  color: #f43f5e;
+  border-color: rgba(244, 63, 94, 0.2);
+}
+
+/* Previous button */
+.onboarding-btn-prev {
+  background: transparent;
+  color: #94a3b8;
+  border: 1px solid #1c2535;
+}
+
+.onboarding-btn-prev:hover {
+  border-color: #3b82f6;
+  color: #3b82f6;
+}
+
+/* Next / Finish button */
+.onboarding-btn-next {
+  background: #3b82f6;
+  color: #fff;
+  box-shadow: 0 4px 14px rgba(59, 130, 246, 0.35);
+  padding: 7px 20px;
+}
+
+.onboarding-btn-next:hover {
+  background: #4f8ff7;
+  box-shadow: 0 6px 20px rgba(59, 130, 246, 0.45);
+  transform: translateY(-1px);
+}
+
+.onboarding-btn-next:active {
+  transform: translateY(0);
+}
+
+/* ─── Welcome Modal ─── */
+
+.welcome-overlay {
+  position: fixed;
+  inset: 0;
+  z-index: 99999;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 16px;
+}
+
+.welcome-backdrop {
+  position: absolute;
+  inset: 0;
+  background: rgba(7, 9, 15, 0.85);
+  backdrop-filter: blur(8px);
+}
+
+.welcome-card {
+  position: relative;
+  width: 100%;
+  max-width: 480px;
+  border-radius: 20px;
+  border: 1px solid #1c2535;
+  background: linear-gradient(135deg, #111720 0%, #0d1117 100%);
+  padding: 48px 40px 40px;
+  box-shadow:
+    0 32px 80px rgba(0, 0, 0, 0.7),
+    0 0 0 1px rgba(59, 130, 246, 0.08),
+    inset 0 1px 0 rgba(255, 255, 255, 0.03);
+  text-align: center;
+  overflow: hidden;
+}
+
+/* Decorative gradient orb behind logo */
+.welcome-card::before {
+  content: '';
+  position: absolute;
+  top: -60px;
+  left: 50%;
+  transform: translateX(-50%);
+  width: 200px;
+  height: 200px;
+  border-radius: 50%;
+  background: radial-gradient(circle, rgba(59, 130, 246, 0.15) 0%, transparent 70%);
+  pointer-events: none;
+}
+
+.welcome-logo {
+  width: 60px;
+  height: 60px;
+  border-radius: 16px;
+  background: linear-gradient(135deg, #3b82f6, #8b5cf6);
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  font-family: 'Syne', sans-serif;
+  font-size: 26px;
+  font-weight: 800;
+  color: #fff;
+  margin-bottom: 24px;
+  box-shadow: 0 12px 40px rgba(59, 130, 246, 0.35);
+  position: relative;
+}
+
+.welcome-title {
+  font-family: 'Syne', sans-serif;
+  font-size: 26px;
+  font-weight: 700;
+  color: #e2e8f0;
+  letter-spacing: -0.02em;
+  margin-bottom: 8px;
+  line-height: 1.2;
+}
+
+.welcome-subtitle {
+  font-size: 14px;
+  color: #94a3b8;
+  line-height: 1.6;
+  margin-bottom: 32px;
+}
+
+/* Feature pills */
+.welcome-features {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: center;
+  gap: 8px;
+  margin-bottom: 36px;
+}
+
+.welcome-feature {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  padding: 6px 14px;
+  border-radius: 20px;
+  background: rgba(59, 130, 246, 0.08);
+  border: 1px solid rgba(59, 130, 246, 0.15);
+  font-size: 12px;
+  font-weight: 500;
+  color: #94a3b8;
+}
+
+.welcome-feature .icon {
+  font-size: 14px;
+}
+
+/* Welcome buttons */
+.welcome-actions {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+
+.welcome-btn-start {
+  width: 100%;
+  padding: 14px 24px;
+  border-radius: 12px;
+  border: none;
+  background: #3b82f6;
+  color: #fff;
+  font-family: 'DM Sans', sans-serif;
+  font-size: 15px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.2s ease;
+  box-shadow: 0 8px 24px rgba(59, 130, 246, 0.35);
+  outline: none;
+}
+
+.welcome-btn-start:hover {
+  background: #4f8ff7;
+  transform: translateY(-2px);
+  box-shadow: 0 12px 32px rgba(59, 130, 246, 0.45);
+}
+
+.welcome-btn-start:active {
+  transform: translateY(0);
+}
+
+.welcome-btn-skip {
+  width: 100%;
+  padding: 12px 24px;
+  border-radius: 12px;
+  border: 1px solid #1c2535;
+  background: transparent;
+  color: #475569;
+  font-family: 'DM Sans', sans-serif;
+  font-size: 13px;
+  font-weight: 500;
+  cursor: pointer;
+  transition: all 0.2s ease;
+  outline: none;
+}
+
+.welcome-btn-skip:hover {
+  border-color: #2d3748;
+  color: #94a3b8;
+}
+
+/* ──── Responsive ──── */
+@media (max-width: 480px) {
+  .onboarding-tooltip {
+    max-width: calc(100vw - 24px);
+  }
+
+  .onboarding-tooltip-card {
+    padding: 18px 16px 16px;
+  }
+
+  .onboarding-tooltip-title {
+    font-size: 15px;
+  }
+
+  .welcome-card {
+    padding: 36px 24px 28px;
+  }
+
+  .welcome-title {
+    font-size: 22px;
+  }
+}
